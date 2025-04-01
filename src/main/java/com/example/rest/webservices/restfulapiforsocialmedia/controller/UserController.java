@@ -4,6 +4,8 @@ import com.example.rest.webservices.restfulapiforsocialmedia.entity.UserEntity;
 import com.example.rest.webservices.restfulapiforsocialmedia.exception.UserNotFoundException;
 import com.example.rest.webservices.restfulapiforsocialmedia.service.UserDaoService;
 import jakarta.validation.Valid;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -25,12 +27,15 @@ public class UserController {
     }
 
     @GetMapping(path = "users/{id}")
-    public UserEntity retrieveUserById(@PathVariable int id) {
+    public EntityModel<UserEntity> retrieveUserById(@PathVariable int id) {
         var user = userDaoService.findById(id);
         if (user == null) {
             throw new UserNotFoundException("id:" + id);
         }
-        return user;
+
+        var link = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).retrieveAllUsers());
+
+        return EntityModel.of(user).add(link.withRel("all-users"));
     }
 
     @PostMapping(path = "/users")
